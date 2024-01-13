@@ -1,4 +1,9 @@
 # dolibarr_andromeda_inv_template
+
+Νέα έκδοση με περισσότερο styleling.
+
+![invoice1](https://github.com/nikos458/dolibarr_andromeda_inv_template/assets/60128801/2c9b0e4f-86b5-43fc-8b81-9e90aa964518)
+
 Invoice template based on sponge template for dolibarr. Greek QR code AAEDE
 
 Το template περιέχει το QR code από την ΑΑΕΔΕ μέσω του mydata module v1.8.
