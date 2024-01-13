@@ -1015,9 +1015,9 @@ class pdf_andromeda extends ModelePDFFactures
 						$pdf->setPage($pagenb);
 						$heightforqrinvoice = $this->getHeightForQRInvoice($pagenb, $object, $langs);
 						if ($pagenb == $pageposbeforeprintlines) {
-							$this->_tableau($pdf, $this->tab_top, $this->page_hauteur - $this->tab_top - $this->heightforfooter - $heightforqrinvoice, 0, $outputlangs, $hidetop, 1, $object->multicurrency_code, $outputlangsbis);
+							$this->_tableau($pdf, $this->tab_top, $this->page_hauteur - $this->tab_top - $this->heightforfooter - $heightforqrinvoice, 0, $outputlangs, $hidetop, 1, $object->multicurrency_code, $outputlangsbis, $check_new_page=3);
 						} else {
-							$this->_tableau($pdf, $this->tab_top_newpage, $this->page_hauteur - $this->tab_top_newpage - $this->heightforfooter - $heightforqrinvoice, 0, $outputlangs, 1, 1, $object->multicurrency_code, $outputlangsbis);
+							$this->_tableau($pdf, $this->tab_top_newpage, $this->page_hauteur - $this->tab_top_newpage - $this->heightforfooter - $heightforqrinvoice, 0, $outputlangs, 1, 1, $object->multicurrency_code, $outputlangsbis, $check_new_page=4);
 						}
 						$this->_pagefoot($pdf, $object, $outputlangs, 1, $this->getHeightForQRInvoice($pdf->getPage(), $object, $outputlangs));
 						$pagenb++;
@@ -1034,9 +1034,9 @@ class pdf_andromeda extends ModelePDFFactures
 					if (isset($object->lines[$i + 1]->pagebreak) && $object->lines[$i + 1]->pagebreak) {
 						$heightforqrinvoice = $this->getHeightForQRInvoice($pagenb, $object, $langs);
 						if ($pagenb == $pageposafter) {
-							$this->_tableau($pdf, $this->tab_top, $this->page_hauteur - $this->tab_top - $this->heightforfooter - $heightforqrinvoice, 0, $outputlangs, $hidetop, 1, $object->multicurrency_code, $outputlangsbis);
+							$this->_tableau($pdf, $this->tab_top, $this->page_hauteur - $this->tab_top - $this->heightforfooter - $heightforqrinvoice, 0, $outputlangs, $hidetop, 1, $object->multicurrency_code, $outputlangsbis,$check_new_page=1); //add 1 to diferentiate new page 
 						} else {
-							$this->_tableau($pdf, $this->tab_top_newpage, $this->page_hauteur - $this->tab_top_newpage - $this->heightforfooter - $heightforqrinvoice, 0, $outputlangs, 1, 1, $object->multicurrency_code, $outputlangsbis);
+							$this->_tableau($pdf, $this->tab_top_newpage, $this->page_hauteur - $this->tab_top_newpage - $this->heightforfooter - $heightforqrinvoice, 0, $outputlangs, 1, 1, $object->multicurrency_code, $outputlangsbis,$check_new_page=2);//
 						}
 						$this->_pagefoot($pdf, $object, $outputlangs, 1, $this->getHeightForQRInvoice($pdf->getPage(), $object, $outputlangs));
 						// New page
@@ -1054,10 +1054,10 @@ class pdf_andromeda extends ModelePDFFactures
 				// Show square
 				$heightforqrinvoice = $this->getHeightForQRInvoice($pagenb, $object, $langs);
 				if ($pagenb == $pageposbeforeprintlines) {
-					$this->_tableau($pdf, $this->tab_top, $this->page_hauteur - $this->tab_top - $this->heightforinfotot - $this->heightforfreetext - $this->heightforfooter - $heightforqrinvoice, 0, $outputlangs, $hidetop, 0, $object->multicurrency_code, $outputlangsbis);
+					$this->_tableau($pdf, $this->tab_top, $this->page_hauteur - $this->tab_top - $this->heightforinfotot - $this->heightforfreetext - $this->heightforfooter - $heightforqrinvoice, 0, $outputlangs, $hidetop, 0, $object->multicurrency_code, $outputlangsbis, $check_new_page=0); //all single page invoices
 					$bottomlasttab = $this->page_hauteur - $this->heightforinfotot - $this->heightforfreetext - $this->heightforfooter - $heightforqrinvoice + 1;
 				} else {
-					$this->_tableau($pdf, $this->tab_top_newpage, $this->page_hauteur - $this->tab_top_newpage - $this->heightforinfotot - $this->heightforfreetext - $this->heightforfooter - $heightforqrinvoice, 0, $outputlangs, 1, 0, $object->multicurrency_code, $outputlangsbis);
+					$this->_tableau($pdf, $this->tab_top_newpage, $this->page_hauteur - $this->tab_top_newpage - $this->heightforinfotot - $this->heightforfreetext - $this->heightforfooter - $heightforqrinvoice, 0, $outputlangs, 1, 0, $object->multicurrency_code, $outputlangsbis, $check_new_page=5); //last page on multiple page invoices
 					$bottomlasttab = $this->page_hauteur - $this->heightforinfotot - $this->heightforfreetext - $this->heightforfooter - $heightforqrinvoice + 1;
 				}
 
@@ -1823,7 +1823,10 @@ class pdf_andromeda extends ModelePDFFactures
 								$tvakey = str_replace('*', '', $tvakey);
 								$tvacompl = " (".$outputlangs->transnoentities("NonPercuRecuperable").")";
 							}
+							
+							$pdf->RoundedRect($col1x, $tab2_top + $tab2_hl * $index, $col2x - $col1x + $largcol2, $tab2_hl, 3, '1234', 'F'); //Add rounded box
 
+							$pdf->SetFillColor(255, 255, 255);
 							$totalvat = $outputlangs->transcountrynoentities("TotalLT1", $mysoc->country_code).(is_object($outputlangsbis) ? ' / '.$outputlangsbis->transcountrynoentities("TotalLT1", $mysoc->country_code) : '');
 							$totalvat .= ' ';
 							$totalvat .= vatrate(abs($tvakey), 1).$tvacompl;
@@ -1913,10 +1916,15 @@ class pdf_andromeda extends ModelePDFFactures
 						} else {
 							$totalvat .= vatrate($tvaval['vatrate'], 1).($tvaval['vatcode'] ? ' ('.$tvaval['vatcode'].')' : '').$tvacompl;
 						}
+						
+						$pdf->RoundedRect($col1x, $tab2_top + $tab2_hl * $index, $col2x - $col1x + $largcol2, $tab2_hl, 3, '1234', 'F'); //Add rounded box
+
+						$pdf->SetFillColor(255, 255, 255);
 						$pdf->MultiCell($col2x - $col1x, $tab2_hl, $totalvat, 0, 'L', 1);
 
 						$pdf->SetXY($col2x, $tab2_top + $tab2_hl * $index);
 						$pdf->MultiCell($largcol2, $tab2_hl, price(price2num($tvaval['amount'], 'MT'), 0, $outputlangs), 0, 'R', 1);
+						$pdf->SetFillColor(248, 248, 248);
 					}
 				}
 
@@ -1999,7 +2007,11 @@ class pdf_andromeda extends ModelePDFFactures
 				$index++;
 				$pdf->SetXY($col1x, $tab2_top + $tab2_hl * $index);
 				$pdf->SetTextColor(0, 0, 60);
-				$pdf->SetFillColor(224, 224, 224);
+				$pdf->SetFillColor(120, 7, 0);
+				$pdf->RoundedRect($col1x, $tab2_top + $tab2_hl * $index, $col2x - $col1x + $largcol2, $tab2_hl, 3, '1234', 'F'); //Add rounded box
+				$pdf->SetTextColor(255, 255, 255);
+				$pdf->SetFillColor(255, 255, 255);
+				$pdf->SetFont('','B');
 				$pdf->MultiCell($col2x - $col1x, $tab2_hl, $outputlangs->transnoentities("TotalTTC").(is_object($outputlangsbis) ? ' / '.$outputlangsbis->transnoentities("TotalTTC") : ''), $useborder, 'L', 1);
 
 				$pdf->SetXY($col2x, $tab2_top + $tab2_hl * $index);
@@ -2050,6 +2062,7 @@ class pdf_andromeda extends ModelePDFFactures
 			// Already paid + Deposits
 			$index++;
 			$pdf->SetXY($col1x, $tab2_top + $tab2_hl * $index);
+			$pdf->SetFont('', '', $default_font_size - 1);
 			$pdf->MultiCell($col2x - $col1x, $tab2_hl, $outputlangs->transnoentities("Paid").(is_object($outputlangsbis) ? ' / '.$outputlangsbis->transnoentities("Paid") : ''), 0, 'L', 0);
 			$pdf->SetXY($col2x, $tab2_top + $tab2_hl * $index);
 			$pdf->MultiCell($largcol2, $tab2_hl, price($deja_regle + $depositsamount, 0, $outputlangs), 0, 'R', 0);
@@ -2081,14 +2094,17 @@ class pdf_andromeda extends ModelePDFFactures
 			 */
 
 			$index++;
-			$pdf->SetTextColor(0, 0, 60);
+			$pdf->SetTextColor(0, 0, 0);
+			$pdf->SetFont('', '', $default_font_size - 1);
 			$pdf->SetFillColor(224, 224, 224);
 			$pdf->SetXY($col1x, $tab2_top + $tab2_hl * $index);
+			$pdf->RoundedRect($col1x, $tab2_top + $tab2_hl * $index, $col2x - $col1x + $largcol2, $tab2_hl, 3, '1234', 'F'); //Add rounded box
+			$pdf->SetFillColor(255, 255, 255);
 			$pdf->MultiCell($col2x - $col1x, $tab2_hl, $outputlangs->transnoentities("RemainderToPay").(is_object($outputlangsbis) ? ' / '.$outputlangsbis->transnoentities("RemainderToPay") : ''), $useborder, 'L', 1);
 			$pdf->SetXY($col2x, $tab2_top + $tab2_hl * $index);
 			$pdf->MultiCell($largcol2, $tab2_hl, price($resteapayer, 0, $outputlangs), $useborder, 'R', 1);
 
-			$pdf->SetFont('', '', $default_font_size - 1);
+			
 			$pdf->SetTextColor(0, 0, 0);
 		}
 
@@ -2125,7 +2141,8 @@ class pdf_andromeda extends ModelePDFFactures
 	 *   @param		Translate	$outputlangsbis	Langs object bis
 	 *   @return	void
 	 */
-	protected function _tableau(&$pdf, $tab_top, $tab_height, $nexY, $outputlangs, $hidetop = 0, $hidebottom = 0, $currency = '', $outputlangsbis = null)
+	
+	 protected function _tableau(&$pdf, $tab_top, $tab_height, $nexY, $outputlangs, $hidetop = 0, $hidebottom = 0, $currency = '', $outputlangsbis = null, $check_new_page)
 	{
 		global $conf;
 
@@ -2158,24 +2175,37 @@ class pdf_andromeda extends ModelePDFFactures
 			$pdf->SetXY($this->page_largeur - $this->marge_droite - ($pdf->GetStringWidth($titre) + 3), $tab_top - 4);
 			$pdf->MultiCell(($pdf->GetStringWidth($titre) + 3), 2, $titre);
 
-			$conf->global->MAIN_PDF_TITLE_BACKGROUND_COLOR='230,230,230';
+			$conf->global->MAIN_PDF_TITLE_BACKGROUND_COLOR='120,7,0'; //itmes table header background color 120,7,0 
 			if (!empty($conf->global->MAIN_PDF_TITLE_BACKGROUND_COLOR)) {
-				$pdf->Rect($this->marge_gauche, $tab_top, $this->page_largeur - $this->marge_droite - $this->marge_gauche, $this->tabTitleHeight, 'F', null, explode(',', $conf->global->MAIN_PDF_TITLE_BACKGROUND_COLOR));
+				//$pdf->Rect($this->marge_gauche, $tab_top, $this->page_largeur - $this->marge_droite - $this->marge_gauche, $this->tabTitleHeight, 'F', null, explode(',', $conf->global->MAIN_PDF_TITLE_BACKGROUND_COLOR));
+				$pdf->RoundedRect($this->marge_gauche, $tab_top, $this->page_largeur - $this->marge_droite - $this->marge_gauche, $this->tabTitleHeight, 3, '1234', 'F', 'D', explode(',', $conf->global->MAIN_PDF_TITLE_BACKGROUND_COLOR)); //Add rounded box
 			}
 		}
 
-		$pdf->SetDrawColor(128, 128, 128);
-		$pdf->SetFont('', '', $default_font_size - 1);
+		$pdf->SetDrawColor(128, 128, 128); //line color on table - grey 128,128,128
+		$pdf->SetFont('', 'B', $default_font_size - 1);
+		$pdf->SetTextColor(255,255,255);
 
+		
 		// Output Rect - Line table outside borders
-		$this->printRect($pdf, $this->marge_gauche, $tab_top, $this->page_largeur - $this->marge_gauche - $this->marge_droite, $tab_height, $hidetop, $hidebottom); // Rect takes a length in 3rd parameter and 4th parameter
+		//$this->printRect($pdf, $this->marge_gauche, $tab_top, $this->page_largeur - $this->marge_gauche - $this->marge_droite, $tab_height, $hidetop, $hidebottom); // Rect takes a length in 3rd parameter and 4th parameter
+		//check_new_page checks if there is extra invoice page. If there is then the table starts higher than on first page where we have the title header of items table
+		//No 0 for single page invoices, multiple page invoice: no 3 for first page, no 4 for all new pages except last, no 5 for last page
+		if($check_new_page==4 || $check_new_page==5) {
+			
+			$pdf->RoundedRect($this->marge_gauche, $tab_top, $this->page_largeur - $this->marge_droite - $this->marge_gauche, $tab_height, 3, '1234', 'D'); //Add rounded box
+		} else {
 
-
+			$pdf->RoundedRect($this->marge_gauche, $tab_top + $this->tabTitleHeight, $this->page_largeur - $this->marge_droite - $this->marge_gauche, $tab_height - $this->tabTitleHeight, 3, '1234', 'D'); //Add rounded box
+		}
+		
 		$this->pdfTabTitles($pdf, $tab_top, $tab_height, $outputlangs, $hidetop);
 
 		if (empty($hidetop)) {
-			$pdf->line($this->marge_gauche, $tab_top + $this->tabTitleHeight, $this->page_largeur - $this->marge_droite, $tab_top + $this->tabTitleHeight); // line takes a position y in 2nd parameter and 4th parameter
+			//Line between item table and header
+			//$pdf->line($this->marge_gauche, $tab_top + $this->tabTitleHeight, $this->page_largeur - $this->marge_droite, $tab_top + $this->tabTitleHeight); // line takes a position y in 2nd parameter and 4th parameter
 		}
+		$pdf->SetTextColor();
 	}
 
 	// phpcs:disable PEAR.NamingConventions.ValidFunctionName.PublicUnderscore
